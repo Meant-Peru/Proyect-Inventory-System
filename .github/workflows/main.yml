@@ -16,18 +16,18 @@ jobs:
       - name: Obtener SHA corto
         id: short
         run: echo "short_sha=$(git rev-parse --short $GITHUB_SHA)" >> $GITHUB_OUTPUT
-      - name: Configurar Node.js
-        uses: actions/setup-node@v3
+      - name: Configurar .NET
+        uses: actions/setup-dotnet@v4
         with:
-          node-version: 20
-      - name: Instalar dependencias
-        run: npm install
+          dotnet-version: '8.0.x'
+      - name: Restaurar dependencias
+        run: dotnet restore
+      - name: Compilar proyecto
+        run: dotnet build --no-restore
       - name: Ejecutar pruebas unitarias
-        run: npm run test:unit
-      - name: Ejecutar pruebas de integración
-        run: npm run test:integration
+        run: dotnet test --no-build --verbosity normal
       - name: Crear archivo ZIP del proyecto
-        run: zip -r build-artifact.zip . -x "node_modules/*" ".git/*"
+        run: zip -r build-artifact.zip . -x "bin/*" "obj/*" ".git/*"
 
       - name: Subir artefacto ZIP
         uses: actions/upload-artifact@v4
@@ -46,7 +46,7 @@ jobs:
 
       - name: Build and Push Docker Image
         run: |
-          IMAGE_NAME=acr${{ vars.GRUPO }}.azurecr.io/my-nodejs-app
+          IMAGE_NAME=acr${{ vars.GRUPO }}.azurecr.io/inventory-system-app
           TAG=${{ steps.short.outputs.short_sha }}
           echo "Construyendo imagen $IMAGE_NAME:$TAG"
           docker build -t $IMAGE_NAME:$TAG .
@@ -72,7 +72,7 @@ jobs:
   
       - name: Establecer variables
         run: |
-          IMAGE_NAME=acr${{ vars.GRUPO }}.azurecr.io/my-nodejs-app
+          IMAGE_NAME=acr${{ vars.GRUPO }}.azurecr.io/inventory-system-app
           TAG=${{ steps.short.outputs.short_sha }}
           APP_NAME=aca-ms-${{ vars.GRUPO }}-${{ vars.ENV }}
           RESOURCE_GROUP=rg-appg5-dev-west-01-${{ vars.GRUPO }}
@@ -103,7 +103,7 @@ jobs:
             --name $APP_NAME \
             --resource-group $RESOURCE_GROUP \
             --image $IMAGE \
-            --set-env-vars ENV=${{ vars.ENV }} API_PROVIDER_URL=${{ vars.API_PROVIDER_URL }} 
+            --set-env-vars ENV=${{ vars.ENV }} API_PROVIDER_URL=${{ vars.API_PROVIDER_URL }} ConnectionStrings__SqlConnection="${{ vars.SQL_CONNECTION_STRING }}" 
       
       - name: Imprimir endpoint del Container App
         run: |
@@ -140,7 +140,7 @@ jobs:
   
       - name: Establecer variables
         run: |
-          IMAGE_NAME=acr${{ vars.GRUPO }}.azurecr.io/my-nodejs-app
+          IMAGE_NAME=acr${{ vars.GRUPO }}.azurecr.io/inventory-system-app
           TAG=${{ steps.short.outputs.short_sha }}
           APP_NAME=aca-ms-${{ vars.GRUPO }}-${{ vars.ENV }}
           RESOURCE_GROUP=rg-appg5-dev-west-01-${{ vars.GRUPO }}
@@ -171,7 +171,7 @@ jobs:
             --name $APP_NAME \
             --resource-group $RESOURCE_GROUP \
             --image $IMAGE \
-            --set-env-vars ENV=${{ vars.ENV }} API_PROVIDER_URL=${{ vars.API_PROVIDER_URL }} 
+            --set-env-vars ENV=${{ vars.ENV }} API_PROVIDER_URL=${{ vars.API_PROVIDER_URL }} ConnectionStrings__SqlConnection="${{ vars.SQL_CONNECTION_STRING }}" 
       
       - name: Imprimir endpoint del Container App
         run: |
@@ -207,7 +207,7 @@ jobs:
   
       - name: Establecer variables
         run: |
-          IMAGE_NAME=acr${{ vars.GRUPO }}.azurecr.io/my-nodejs-app
+          IMAGE_NAME=acr${{ vars.GRUPO }}.azurecr.io/inventory-system-app
           TAG=${{ steps.short.outputs.short_sha }}
           APP_NAME=aca-ms-${{ vars.GRUPO }}-${{ vars.ENV }}
           RESOURCE_GROUP=rg-appg5-dev-west-01-${{ vars.GRUPO }}
@@ -238,7 +238,7 @@ jobs:
             --name $APP_NAME \
             --resource-group $RESOURCE_GROUP \
             --image $IMAGE \
-            --set-env-vars ENV=${{ vars.ENV }} API_PROVIDER_URL=${{ vars.API_PROVIDER_URL }} 
+            --set-env-vars ENV=${{ vars.ENV }} API_PROVIDER_URL=${{ vars.API_PROVIDER_URL }} ConnectionStrings__SqlConnection="${{ vars.SQL_CONNECTION_STRING }}" 
 
       - name: Imprimir endpoint del Container App
         run: |
