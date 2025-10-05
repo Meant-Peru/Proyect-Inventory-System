@@ -1,0 +1,50 @@
+﻿@using InventorySystem.Entities
+
+@model List<ProductosViewModel>
+
+@{
+}
+
+<div class="row">
+    <div class="col-sm-6">
+        <h2>Productos</h2>
+    </div>
+    <div class="col-sm-6 text-end">
+        <a href="/Productos/Create" class="btn btn-success">Nuevo Producto</a>
+    </div>
+</div>
+<hr/>
+<div class="row">
+    <div class="col-sm-12">
+        <table class="table table-bordered table-striped">
+            <thead>
+                <tr>
+                    <th>Id</th>
+                    <th>Nombre</th>
+                    <th>Descripcion</th>
+                    <th>Categoria</th>
+                    <th>StockActual</th>
+                    <th>StockMinimo</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var item in Model)
+                {
+                    <tr>
+                        <td>@item.ProductoID</td>
+                        <td>@item.Nombre</td>
+                        <td>@item.Descripcion</td>
+                        <td>@item.CategoriaNombre</td>
+                        <td>@item.StockActual</td>
+                        <td>@item.StockMinimo</td>
+
+                        <td>
+                            <a href="#" class="btn btn-primary btn-sm">Edit</a>
+                            <a href="#" class="btn btn-danger btn-sm">Delete</a>
+                        </td>
+                    </tr>
+                }
+        </table>
+    </div>
+</div>
+

@@ -1,0 +1,48 @@
+﻿@using InventorySystem.Entities
+
+@model Productos
+
+<div class="row mt-4">
+    <div class="col-sm-6 offset-sm-3">
+        <h2>Nuevo Producto</h2>
+
+        <form asp-controller="Productos" asp-action="Create" method="post">
+            <div class="mb-3">
+                <label class="form-label">Nombre</label>
+                <input type="text" class="form-control" asp-for="Nombre">
+                <span asp-validation-for="Nombre" class="text-danger"></span>
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label">Descripcion</label>
+                <input type="text" class="form-control" asp-for="Descripcion">
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label">Categoria</label>
+                <select class="form-select" asp-for="CategoriaID">
+                    <option value="" disabled selected>--select--</option>
+                    <option value="1">Medicamentos</option>
+                    <option value="2">Higiene Personal</option>
+                </select>
+                <span asp-validation-for="CategoriaID" class="text-danger"></span>
+            </div>
+
+            @if (ViewBag.message != null)
+            {
+                <div class="alert alert-danger" role="alert">
+                    @ViewBag.mesaage
+                </div>
+            }
+            
+
+            <div class="d-grid gap-2 d-md-block">
+                <button class="btn btn-primary" type="submit">Guardar</button>
+                <a asp-controller="Productos" asp-action="Index" class="btn btn-warning">Atras</a>
+            </div>
+        </form>
+    </div>
+</div>
+
+@{
+}
