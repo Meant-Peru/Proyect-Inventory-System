@@ -130,7 +130,7 @@ jobs:
 
       - name: Esperar a que el deployment esté listo
         run: |
-          kubectl rollout status deployment/inventory-system-app -n inventory-system --timeout=5m
+          kubectl rollout status deployment/inventory-system-app -n inventory-system --timeout=10m
 
       - name: Obtener IP del servicio
         run: |
@@ -228,7 +228,7 @@ jobs:
 
       - name: Esperar a que el deployment esté listo
         run: |
-          kubectl rollout status deployment/inventory-system-app -n inventory-system --timeout=5m
+          kubectl rollout status deployment/inventory-system-app -n inventory-system --timeout=10m
 
       - name: Obtener IP del servicio
         run: |
@@ -326,7 +326,7 @@ jobs:
 
       - name: Esperar a que el deployment esté listo
         run: |
-          kubectl rollout status deployment/inventory-system-app -n inventory-system --timeout=5m
+          kubectl rollout status deployment/inventory-system-app -n inventory-system --timeout=10m
 
       - name: Obtener IP del servicio
         run: |
