@@ -42,9 +42,11 @@ public class ProductosController : Controller
     [HttpPost]
     public IActionResult Create(Productos model)
     {
-        
-
-        if (!ModelState.IsValid) return View(model);
+        if (!ModelState.IsValid)
+        {
+            ViewBag.Categorias = _serviceCategory.GetAllCategories();
+            return View(model);
+        }
 
         var categoriaValida = _serviceCategory
             .GetAllCategories()
@@ -54,6 +56,7 @@ public class ProductosController : Controller
         if (!categoriaValida)
         {
             ModelState.AddModelError("CategoriaID", "La categoría seleccionada no es válida.");
+            ViewBag.Categorias = _serviceCategory.GetAllCategories();
             return View(model);
         }
 
@@ -61,7 +64,8 @@ public class ProductosController : Controller
         if(response==1) return RedirectToAction("Index");
 
         ViewBag.message = "Error";
-        return View();
+        ViewBag.Categorias = _serviceCategory.GetAllCategories();
+        return View(model);
     }
 
     [HttpGet]
