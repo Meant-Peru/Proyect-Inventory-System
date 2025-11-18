@@ -123,6 +123,12 @@ jobs:
         run: |
           sed -i "s|IMAGE_PLACEHOLDER|${{ env.IMAGE }}|g" deployment.yaml
 
+      - name: Forzar eliminación de pods antiguos
+        run: |
+          # Eliminar deployment existente si hay problemas
+          kubectl delete deployment inventory-system-app -n inventory-system --ignore-not-found=true --grace-period=0 --force || true
+          sleep 5
+
       - name: Deploy a AKS usando Kustomize (sin prefijo)
         run: |
           # Usar manifiestos base directamente para dev (sin namePrefix)
@@ -130,7 +136,7 @@ jobs:
 
       - name: Esperar a que el deployment esté listo
         run: |
-          kubectl rollout status deployment/inventory-system-app -n inventory-system --timeout=10m
+          kubectl rollout status deployment/inventory-system-app -n inventory-system --timeout=5m
 
       - name: Obtener IP del servicio
         run: |
@@ -222,13 +228,18 @@ jobs:
         run: |
           sed -i "s|IMAGE_PLACEHOLDER|${{ env.IMAGE }}|g" deployment.yaml
 
+      - name: Forzar eliminación de pods antiguos (QA)
+        run: |
+          kubectl delete deployment inventory-system-app -n inventory-system --ignore-not-found=true --grace-period=0 --force || true
+          sleep 5
+
       - name: Deploy a AKS (QA)
         run: |
           kubectl apply -k k8s/base
 
       - name: Esperar a que el deployment esté listo
         run: |
-          kubectl rollout status deployment/inventory-system-app -n inventory-system --timeout=10m
+          kubectl rollout status deployment/inventory-system-app -n inventory-system --timeout=5m
 
       - name: Obtener IP del servicio
         run: |
@@ -320,13 +331,18 @@ jobs:
         run: |
           sed -i "s|IMAGE_PLACEHOLDER|${{ env.IMAGE }}|g" deployment.yaml
 
+      - name: Forzar eliminación de pods antiguos (PRD)
+        run: |
+          kubectl delete deployment inventory-system-app -n inventory-system --ignore-not-found=true --grace-period=0 --force || true
+          sleep 5
+
       - name: Deploy a AKS (PRD)
         run: |
           kubectl apply -k k8s/base
 
       - name: Esperar a que el deployment esté listo
         run: |
-          kubectl rollout status deployment/inventory-system-app -n inventory-system --timeout=10m
+          kubectl rollout status deployment/inventory-system-app -n inventory-system --timeout=5m
 
       - name: Obtener IP del servicio
         run: |
