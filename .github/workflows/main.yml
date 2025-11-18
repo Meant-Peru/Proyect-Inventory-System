@@ -48,11 +48,11 @@ jobs:
 
       - name: Docker Login to ACR
         run: |
-          az acr login --name acr${{ vars.GRUPO }}
+          az acr login --name acrappg5
 
       - name: Build and Push Docker Image
         run: |
-          IMAGE_NAME=acr${{ vars.GRUPO }}.azurecr.io/inventory-system-app
+          IMAGE_NAME=acrappg5.azurecr.io/inventory-system-app
           TAG=${{ steps.short.outputs.short_sha }}
           echo "Construyendo imagen $IMAGE_NAME:$TAG"
           docker build -t $IMAGE_NAME:$TAG -t $IMAGE_NAME:latest .
@@ -79,10 +79,10 @@ jobs:
 
       - name: Establecer variables
         run: |
-          IMAGE_NAME=acr${{ vars.GRUPO }}.azurecr.io/inventory-system-app
+          IMAGE_NAME=acrappg5.azurecr.io/inventory-system-app
           TAG=${{ steps.short.outputs.short_sha }}
-          AKS_NAME=aks-appg5-dev-west-01-${{ vars.GRUPO }}
-          RESOURCE_GROUP=rg-appg5-dev-west-01-${{ vars.GRUPO }}
+          AKS_NAME=aks-appg5-dev-west-01-AppG5
+          RESOURCE_GROUP=rg-appg5-dev-west-01-AppG5
 
           echo "IMAGE=$IMAGE_NAME:$TAG" >> $GITHUB_ENV
           echo "AKS_NAME=$AKS_NAME" >> $GITHUB_ENV
@@ -169,10 +169,10 @@ jobs:
 
       - name: Establecer variables
         run: |
-          IMAGE_NAME=acr${{ vars.GRUPO }}.azurecr.io/inventory-system-app
+          IMAGE_NAME=acrappg5.azurecr.io/inventory-system-app
           TAG=${{ steps.short.outputs.short_sha }}
-          AKS_NAME=aks-appg5-qa-west-01-${{ vars.GRUPO }}
-          RESOURCE_GROUP=rg-appg5-qa-west-01-${{ vars.GRUPO }}
+          AKS_NAME=aks-appg5-qa-west-01-AppG5
+          RESOURCE_GROUP=rg-appg5-qa-west-01-AppG5
 
           echo "IMAGE=$IMAGE_NAME:$TAG" >> $GITHUB_ENV
           echo "AKS_NAME=$AKS_NAME" >> $GITHUB_ENV
@@ -258,10 +258,10 @@ jobs:
 
       - name: Establecer variables
         run: |
-          IMAGE_NAME=acr${{ vars.GRUPO }}.azurecr.io/inventory-system-app
+          IMAGE_NAME=acrappg5.azurecr.io/inventory-system-app
           TAG=${{ steps.short.outputs.short_sha }}
-          AKS_NAME=aks-appg5-prd-west-01-${{ vars.GRUPO }}
-          RESOURCE_GROUP=rg-appg5-prd-west-01-${{ vars.GRUPO }}
+          AKS_NAME=aks-appg5-prd-west-01-AppG5
+          RESOURCE_GROUP=rg-appg5-prd-west-01-AppG5
 
           echo "IMAGE=$IMAGE_NAME:$TAG" >> $GITHUB_ENV
           echo "AKS_NAME=$AKS_NAME" >> $GITHUB_ENV
