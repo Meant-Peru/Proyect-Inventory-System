@@ -41,14 +41,12 @@ jobs:
           name: build-artifact
           path: build-artifact.zip
 
-      - name: Azure Login
-        uses: azure/login@v2
-        with:
-          creds: ${{ secrets.AZURE_CREDENTIALS }}
-
       - name: Docker Login to ACR
-        run: |
-          az acr login --name acrappg5
+        uses: docker/login-action@v3
+        with:
+          registry: acrappg5.azurecr.io
+          username: ${{ secrets.ACR_USERNAME }}
+          password: ${{ secrets.ACR_PASSWORD }}
 
       - name: Build and Push Docker Image
         run: |
@@ -95,6 +93,15 @@ jobs:
       - name: Crear namespace si no existe
         run: |
           kubectl get namespace inventory-system || kubectl create namespace inventory-system
+
+      - name: Crear Image Pull Secret para ACR
+        run: |
+          kubectl create secret docker-registry acr-secret \
+            --docker-server=acrappg5.azurecr.io \
+            --docker-username=${{ secrets.ACR_USERNAME }} \
+            --docker-password=${{ secrets.ACR_PASSWORD }} \
+            --namespace=inventory-system \
+            --dry-run=client -o yaml | kubectl apply -f -
 
       - name: Crear/Actualizar Secret de SQL Connection
         run: |
@@ -186,6 +193,15 @@ jobs:
         run: |
           kubectl get namespace inventory-system || kubectl create namespace inventory-system
 
+      - name: Crear Image Pull Secret para ACR
+        run: |
+          kubectl create secret docker-registry acr-secret \
+            --docker-server=acrappg5.azurecr.io \
+            --docker-username=${{ secrets.ACR_USERNAME }} \
+            --docker-password=${{ secrets.ACR_PASSWORD }} \
+            --namespace=inventory-system \
+            --dry-run=client -o yaml | kubectl apply -f -
+
       - name: Crear/Actualizar Secret de SQL Connection
         run: |
           kubectl create secret generic sql-connection-secret \
@@ -274,6 +290,15 @@ jobs:
       - name: Crear namespace si no existe
         run: |
           kubectl get namespace inventory-system || kubectl create namespace inventory-system
+
+      - name: Crear Image Pull Secret para ACR
+        run: |
+          kubectl create secret docker-registry acr-secret \
+            --docker-server=acrappg5.azurecr.io \
+            --docker-username=${{ secrets.ACR_USERNAME }} \
+            --docker-password=${{ secrets.ACR_PASSWORD }} \
+            --namespace=inventory-system \
+            --dry-run=client -o yaml | kubectl apply -f -
 
       - name: Crear/Actualizar Secret de SQL Connection
         run: |

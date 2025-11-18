@@ -15,6 +15,8 @@ spec:
       labels:
         app: inventory-system
     spec:
+      imagePullSecrets:
+      - name: acr-secret
       containers:
       - name: inventory-system
         image: IMAGE_PLACEHOLDER
