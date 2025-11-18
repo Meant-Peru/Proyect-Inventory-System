@@ -1,12 +1,14 @@
-﻿@using InventorySystem.Entities
+@using InventorySystem.Entities
 
 @model Productos
 
 <div class="row mt-4">
     <div class="col-sm-6 offset-sm-3">
-        <h2>Nuevo Producto</h2>
+        <h2>Editar Producto</h2>
 
-        <form asp-controller="Productos" asp-action="Create" method="post">
+        <form asp-controller="Productos" asp-action="Edit" method="post">
+            <input type="hidden" asp-for="ProductoID">
+
             <div class="mb-3">
                 <label class="form-label">Nombre</label>
                 <input type="text" class="form-control" asp-for="Nombre">
@@ -21,12 +23,12 @@
             <div class="mb-3">
                 <label class="form-label">Categoria</label>
                 <select class="form-select" asp-for="CategoriaID">
-                    <option value="" disabled selected>--Seleccione una categoria--</option>
+                    <option value="" disabled>--Seleccione una categoria--</option>
                     @if (ViewBag.Categorias != null)
                     {
                         foreach (var cat in ViewBag.Categorias)
                         {
-                            <option value="@cat.CategoriaID">@cat.Nombre</option>
+                            <option value="@cat.CategoriaID" selected="@(cat.CategoriaID == Model.CategoriaID)">@cat.Nombre</option>
                         }
                     }
                 </select>
@@ -35,31 +37,27 @@
 
             <div class="mb-3">
                 <label class="form-label">Stock Actual</label>
-                <input type="number" class="form-control" asp-for="StockActual" value="0">
+                <input type="number" class="form-control" asp-for="StockActual">
                 <span asp-validation-for="StockActual" class="text-danger"></span>
             </div>
 
             <div class="mb-3">
                 <label class="form-label">Stock Minimo</label>
-                <input type="number" class="form-control" asp-for="StockMinimo" value="0">
+                <input type="number" class="form-control" asp-for="StockMinimo">
                 <span asp-validation-for="StockMinimo" class="text-danger"></span>
             </div>
 
             @if (ViewBag.message != null)
             {
                 <div class="alert alert-danger" role="alert">
-                    @ViewBag.mesaage
+                    @ViewBag.message
                 </div>
             }
-            
 
             <div class="d-grid gap-2 d-md-block">
-                <button class="btn btn-primary" type="submit">Guardar</button>
-                <a asp-controller="Productos" asp-action="Index" class="btn btn-warning">Atras</a>
+                <button class="btn btn-primary" type="submit">Actualizar</button>
+                <a asp-controller="Productos" asp-action="Index" class="btn btn-warning">Cancelar</a>
             </div>
         </form>
     </div>
 </div>
-
-@{
-}

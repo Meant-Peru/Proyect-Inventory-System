@@ -35,6 +35,7 @@ public class ProductosController : Controller
     [HttpGet]
     public IActionResult Create()
     {
+        ViewBag.Categorias = _serviceCategory.GetAllCategories();
         return View();
     }
 
@@ -61,5 +62,65 @@ public class ProductosController : Controller
 
         ViewBag.message = "Error";
         return View();
+    }
+
+    [HttpGet]
+    public IActionResult Edit(int id)
+    {
+        var producto = _serviceProduct.GetProductById(id);
+        if (producto == null) return NotFound();
+
+        ViewBag.Categorias = _serviceCategory.GetAllCategories();
+        return View(producto);
+    }
+
+    [HttpPost]
+    public IActionResult Edit(Productos model)
+    {
+        if (!ModelState.IsValid)
+        {
+            ViewBag.Categorias = _serviceCategory.GetAllCategories();
+            return View(model);
+        }
+
+        var categoriaValida = _serviceCategory
+            .GetAllCategories()
+            .Any(c => c.CategoriaID == model.CategoriaID);
+
+        if (!categoriaValida)
+        {
+            ModelState.AddModelError("CategoriaID", "La categoria seleccionada no es valida.");
+            ViewBag.Categorias = _serviceCategory.GetAllCategories();
+            return View(model);
+        }
+
+        var response = _serviceProduct.UpdateProduct(model);
+        if (response == 1) return RedirectToAction("Index");
+
+        ViewBag.message = "Error al actualizar";
+        ViewBag.Categorias = _serviceCategory.GetAllCategories();
+        return View(model);
+    }
+
+    [HttpGet]
+    public IActionResult Delete(int id)
+    {
+        var producto = _serviceProduct.GetProductById(id);
+        if (producto == null) return NotFound();
+
+        var categorias = _serviceCategory.GetAllCategories();
+        ViewBag.CategoriaNombre = categorias.FirstOrDefault(c => c.CategoriaID == producto.CategoriaID)?.Nombre ?? "Sin categoria";
+
+        return View(producto);
+    }
+
+    [HttpPost]
+    public IActionResult DeleteConfirmed(int id)
+    {
+        var response = _serviceProduct.DeleteProduct(id);
+        if (response == 1) return RedirectToAction("Index");
+
+        TempData["Error"] = "Error al eliminar el producto";
+        return RedirectToAction("Index");
     }
 }

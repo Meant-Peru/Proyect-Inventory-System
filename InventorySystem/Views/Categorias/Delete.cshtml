@@ -1,0 +1,30 @@
+@using InventorySystem.Entities
+
+@model Categorias
+
+<div class="row mt-4">
+    <div class="col-sm-6 offset-sm-3">
+        <h2>Eliminar Categoria</h2>
+
+        <div class="alert alert-warning" role="alert">
+            Esta seguro que desea eliminar esta categoria?
+        </div>
+
+        <dl class="row">
+            <dt class="col-sm-4">Nombre:</dt>
+            <dd class="col-sm-8">@Model.Nombre</dd>
+
+            <dt class="col-sm-4">Descripcion:</dt>
+            <dd class="col-sm-8">@Model.Descripcion</dd>
+        </dl>
+
+        <form asp-controller="Categorias" asp-action="DeleteConfirmed" method="post">
+            <input type="hidden" name="id" value="@Model.CategoriaID">
+
+            <div class="d-grid gap-2 d-md-block">
+                <button class="btn btn-danger" type="submit">Eliminar</button>
+                <a asp-controller="Categorias" asp-action="Index" class="btn btn-secondary">Cancelar</a>
+            </div>
+        </form>
+    </div>
+</div>

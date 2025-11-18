@@ -1,0 +1,37 @@
+@using InventorySystem.Entities
+
+@model Categorias
+
+<div class="row mt-4">
+    <div class="col-sm-6 offset-sm-3">
+        <h2>Editar Categoria</h2>
+
+        <form asp-controller="Categorias" asp-action="Edit" method="post">
+            <input type="hidden" asp-for="CategoriaID">
+
+            <div class="mb-3">
+                <label class="form-label">Nombre</label>
+                <input type="text" class="form-control" asp-for="Nombre">
+                <span asp-validation-for="Nombre" class="text-danger"></span>
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label">Descripcion</label>
+                <textarea class="form-control" asp-for="Descripcion" rows="3"></textarea>
+                <span asp-validation-for="Descripcion" class="text-danger"></span>
+            </div>
+
+            @if (ViewBag.message != null)
+            {
+                <div class="alert alert-danger" role="alert">
+                    @ViewBag.message
+                </div>
+            }
+
+            <div class="d-grid gap-2 d-md-block">
+                <button class="btn btn-primary" type="submit">Actualizar</button>
+                <a asp-controller="Categorias" asp-action="Index" class="btn btn-warning">Cancelar</a>
+            </div>
+        </form>
+    </div>
+</div>

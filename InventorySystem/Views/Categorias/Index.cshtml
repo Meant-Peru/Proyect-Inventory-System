@@ -1,19 +1,25 @@
-﻿@using InventorySystem.Entities
+@using InventorySystem.Entities
 
-@model List<ProductosViewModel>
-
-@{
-}
+@model List<Categorias>
 
 <div class="row">
     <div class="col-sm-6">
-        <h2>Productos</h2>
+        <h2>Categorias</h2>
     </div>
     <div class="col-sm-6 text-end">
-        <a href="/Productos/Create" class="btn btn-success">Nuevo Producto</a>
+        <a asp-controller="Categorias" asp-action="Create" class="btn btn-success">Nueva Categoria</a>
     </div>
 </div>
 <hr/>
+
+@if (TempData["Error"] != null)
+{
+    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+        @TempData["Error"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+}
+
 <div class="row">
     <div class="col-sm-12">
         <table class="table table-bordered table-striped">
@@ -22,9 +28,6 @@
                     <th>Id</th>
                     <th>Nombre</th>
                     <th>Descripcion</th>
-                    <th>Categoria</th>
-                    <th>Stock Actual</th>
-                    <th>Stock Minimo</th>
                     <th>Acciones</th>
                 </tr>
             </thead>
@@ -32,15 +35,12 @@
                 @foreach (var item in Model)
                 {
                     <tr>
-                        <td>@item.ProductoID</td>
+                        <td>@item.CategoriaID</td>
                         <td>@item.Nombre</td>
                         <td>@item.Descripcion</td>
-                        <td>@item.CategoriaNombre</td>
-                        <td>@item.StockActual</td>
-                        <td>@item.StockMinimo</td>
                         <td>
-                            <a asp-controller="Productos" asp-action="Edit" asp-route-id="@item.ProductoID" class="btn btn-primary btn-sm">Editar</a>
-                            <a asp-controller="Productos" asp-action="Delete" asp-route-id="@item.ProductoID" class="btn btn-danger btn-sm">Eliminar</a>
+                            <a asp-controller="Categorias" asp-action="Edit" asp-route-id="@item.CategoriaID" class="btn btn-primary btn-sm">Editar</a>
+                            <a asp-controller="Categorias" asp-action="Delete" asp-route-id="@item.CategoriaID" class="btn btn-danger btn-sm">Eliminar</a>
                         </td>
                     </tr>
                 }
@@ -48,4 +48,3 @@
         </table>
     </div>
 </div>
-

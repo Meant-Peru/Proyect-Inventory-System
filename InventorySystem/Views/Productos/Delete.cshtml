@@ -1,0 +1,39 @@
+@using InventorySystem.Entities
+
+@model Productos
+
+<div class="row mt-4">
+    <div class="col-sm-6 offset-sm-3">
+        <h2>Eliminar Producto</h2>
+
+        <div class="alert alert-warning" role="alert">
+            Esta seguro que desea eliminar este producto?
+        </div>
+
+        <dl class="row">
+            <dt class="col-sm-4">Nombre:</dt>
+            <dd class="col-sm-8">@Model.Nombre</dd>
+
+            <dt class="col-sm-4">Descripcion:</dt>
+            <dd class="col-sm-8">@Model.Descripcion</dd>
+
+            <dt class="col-sm-4">Categoria:</dt>
+            <dd class="col-sm-8">@ViewBag.CategoriaNombre</dd>
+
+            <dt class="col-sm-4">Stock Actual:</dt>
+            <dd class="col-sm-8">@Model.StockActual</dd>
+
+            <dt class="col-sm-4">Stock Minimo:</dt>
+            <dd class="col-sm-8">@Model.StockMinimo</dd>
+        </dl>
+
+        <form asp-controller="Productos" asp-action="DeleteConfirmed" method="post">
+            <input type="hidden" name="id" value="@Model.ProductoID">
+
+            <div class="d-grid gap-2 d-md-block">
+                <button class="btn btn-danger" type="submit">Eliminar</button>
+                <a asp-controller="Productos" asp-action="Index" class="btn btn-secondary">Cancelar</a>
+            </div>
+        </form>
+    </div>
+</div>
