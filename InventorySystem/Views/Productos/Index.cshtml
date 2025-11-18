@@ -13,6 +13,21 @@
         <a href="/Productos/Create" class="btn btn-success">Nuevo Producto</a>
     </div>
 </div>
+
+@if (ViewBag.Error != null)
+{
+    <div class="alert alert-danger" role="alert">
+        @ViewBag.Error
+    </div>
+}
+
+@if (TempData["Error"] != null)
+{
+    <div class="alert alert-danger" role="alert">
+        @TempData["Error"]
+    </div>
+}
+
 <hr/>
 <div class="row">
     <div class="col-sm-12">

@@ -10,7 +10,14 @@
         <a asp-controller="Categorias" asp-action="Create" class="btn btn-success">Nueva Categoria</a>
     </div>
 </div>
-<hr/>
+
+@if (ViewBag.Error != null)
+{
+    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+        @ViewBag.Error
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+}
 
 @if (TempData["Error"] != null)
 {
@@ -19,6 +26,8 @@
         <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
     </div>
 }
+
+<hr/>
 
 <div class="row">
     <div class="col-sm-12">

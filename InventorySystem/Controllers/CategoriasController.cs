@@ -15,8 +15,16 @@ public class CategoriasController : Controller
 
     public IActionResult Index()
     {
-        var categorias = _serviceCategory.GetAllCategories();
-        return View(categorias);
+        try
+        {
+            var categorias = _serviceCategory.GetAllCategories();
+            return View(categorias);
+        }
+        catch (Exception ex)
+        {
+            ViewBag.Error = $"Error al cargar categorias: {ex.Message}";
+            return View(new List<Categorias>());
+        }
     }
 
     [HttpGet]

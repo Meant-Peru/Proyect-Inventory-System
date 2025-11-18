@@ -17,26 +17,43 @@ public class ProductosController : Controller
     }
     public IActionResult Index()
     {
-        var productos = _serviceProduct.GetAllProducts();
-        var categorias = _serviceCategory.GetAllCategories();
-        
-        var viewModel= productos.Select(p => new ProductosViewModel
+        try
         {
-            ProductoID = p.ProductoID,
-            Nombre = p.Nombre,
-            Descripcion = p.Descripcion,
-            CategoriaNombre = categorias.FirstOrDefault(c => c.CategoriaID == p.CategoriaID)?.Nombre ?? "Sin categoría",
-            StockActual = p.StockActual,
-            StockMinimo = p.StockMinimo
-        }).ToList();
+            var productos = _serviceProduct.GetAllProducts();
+            var categorias = _serviceCategory.GetAllCategories();
 
-        return View(viewModel);
+            var viewModel = productos.Select(p => new ProductosViewModel
+            {
+                ProductoID = p.ProductoID,
+                Nombre = p.Nombre,
+                Descripcion = p.Descripcion,
+                CategoriaNombre = categorias.FirstOrDefault(c => c.CategoriaID == p.CategoriaID)?.Nombre ?? "Sin categoria",
+                StockActual = p.StockActual,
+                StockMinimo = p.StockMinimo
+            }).ToList();
+
+            return View(viewModel);
+        }
+        catch (Exception ex)
+        {
+            ViewBag.Error = $"Error al cargar productos: {ex.Message}";
+            return View(new List<ProductosViewModel>());
+        }
     }
     [HttpGet]
     public IActionResult Create()
     {
-        ViewBag.Categorias = _serviceCategory.GetAllCategories();
-        return View();
+        try
+        {
+            ViewBag.Categorias = _serviceCategory.GetAllCategories();
+            return View();
+        }
+        catch (Exception ex)
+        {
+            ViewBag.Error = $"Error al cargar formulario: {ex.Message}";
+            ViewBag.Categorias = new List<Categorias>();
+            return View();
+        }
     }
 
     [HttpPost]
