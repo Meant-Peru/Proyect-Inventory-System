@@ -1,0 +1,27 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+namespace: inventory-system
+
+bases:
+  - ../../base
+
+namePrefix: dev-
+
+patches:
+  - target:
+      kind: Deployment
+      name: inventory-system-app
+    patch: |-
+      - op: replace
+        path: /spec/replicas
+        value: 1
+
+configMapGenerator:
+  - name: inventory-config
+    behavior: merge
+    literals:
+      - ENV=dev
+
+commonLabels:
+  environment: dev

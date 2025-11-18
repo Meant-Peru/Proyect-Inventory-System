@@ -1,4 +1,4 @@
-name: Build
+name: Build and Deploy to AKS
 
 on:
   push:
@@ -6,26 +6,32 @@ on:
 
 jobs:
   build:
-    name: CI
+    name: CI - Build & Test
     environment: dev
     runs-on: ubuntu-latest
 
     steps:
       - name: Obtener código fuente
         uses: actions/checkout@v4
+
       - name: Obtener SHA corto
         id: short
         run: echo "short_sha=$(git rev-parse --short $GITHUB_SHA)" >> $GITHUB_OUTPUT
+
       - name: Configurar .NET
         uses: actions/setup-dotnet@v4
         with:
           dotnet-version: '8.0.x'
+
       - name: Restaurar dependencias
         run: dotnet restore
+
       - name: Compilar proyecto
         run: dotnet build --no-restore
+
       - name: Ejecutar pruebas unitarias
         run: dotnet test --no-build --verbosity normal
+
       - name: Crear archivo ZIP del proyecto
         run: zip -r build-artifact.zip . -x "bin/*" "obj/*" ".git/*"
 
@@ -34,7 +40,7 @@ jobs:
         with:
           name: build-artifact
           path: build-artifact.zip
-      
+
       - name: Azure Login
         uses: azure/login@v2
         with:
@@ -49,8 +55,9 @@ jobs:
           IMAGE_NAME=acr${{ vars.GRUPO }}.azurecr.io/inventory-system-app
           TAG=${{ steps.short.outputs.short_sha }}
           echo "Construyendo imagen $IMAGE_NAME:$TAG"
-          docker build -t $IMAGE_NAME:$TAG .
+          docker build -t $IMAGE_NAME:$TAG -t $IMAGE_NAME:latest .
           docker push $IMAGE_NAME:$TAG
+          docker push $IMAGE_NAME:latest
 
   deploy-dev:
     name: CD [dev]
@@ -60,56 +67,78 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-  
+
       - name: Obtener SHA corto
         id: short
         run: echo "short_sha=$(git rev-parse --short $GITHUB_SHA)" >> $GITHUB_OUTPUT
-        
+
       - name: Azure Login
         uses: azure/login@v2
         with:
           creds: ${{ secrets.AZURE_CREDENTIALS }}
-  
+
       - name: Establecer variables
         run: |
           IMAGE_NAME=acr${{ vars.GRUPO }}.azurecr.io/inventory-system-app
           TAG=${{ steps.short.outputs.short_sha }}
-          APP_NAME=aca-ms-${{ vars.GRUPO }}-${{ vars.ENV }}
+          AKS_NAME=aks-appg5-dev-west-01-${{ vars.GRUPO }}
           RESOURCE_GROUP=rg-appg5-dev-west-01-${{ vars.GRUPO }}
-          ACR_NAME=acr${{ vars.GRUPO }}
 
           echo "IMAGE=$IMAGE_NAME:$TAG" >> $GITHUB_ENV
-          echo "APP_NAME=$APP_NAME" >> $GITHUB_ENV
+          echo "AKS_NAME=$AKS_NAME" >> $GITHUB_ENV
           echo "RESOURCE_GROUP=$RESOURCE_GROUP" >> $GITHUB_ENV
-          echo "ACR_NAME=$ACR_NAME" >> $GITHUB_ENV
 
-      - name: Configurar ACR credentials para Container App
+      - name: Configurar kubectl
         run: |
-          echo "Configurando credenciales del ACR para la Container App..."
-          ACR_SERVER=$(az acr show --name $ACR_NAME --resource-group $RESOURCE_GROUP --query loginServer --output tsv)
-          echo "Servidor ACR: $ACR_SERVER"
-          
-          # Configurar la Container App para usar managed identity con el ACR
-          az containerapp registry set \
-            --name $APP_NAME \
-            --resource-group $RESOURCE_GROUP \
-            --server $ACR_SERVER \
-            --identity system
-  
-      - name: Deploy a Azure Container App
-        run: |
-          echo "Updating Azure Container App $APP_NAME to image $IMAGE"
-          az containerapp update \
-            --name $APP_NAME \
-            --resource-group $RESOURCE_GROUP \
-            --image $IMAGE \
-            --set-env-vars ENV=${{ vars.ENV }} API_PROVIDER_URL=${{ vars.API_PROVIDER_URL }} ConnectionStrings__SqlConnection="${{ vars.SQL_CONNECTION_STRING }}" 
-      
-      - name: Imprimir endpoint del Container App
-        run: |
-          ENDPOINT=$(az containerapp show --name $APP_NAME --resource-group $RESOURCE_GROUP --query properties.configuration.ingress.fqdn -o tsv)
-          echo "Endpoint del Container App: https://$ENDPOINT"
+          az aks get-credentials --resource-group $RESOURCE_GROUP --name $AKS_NAME --overwrite-existing
 
+      - name: Crear namespace si no existe
+        run: |
+          kubectl get namespace inventory-system || kubectl create namespace inventory-system
+
+      - name: Crear/Actualizar Secret de SQL Connection
+        run: |
+          kubectl create secret generic sql-connection-secret \
+            --from-literal=connection-string="${{ vars.SQL_CONNECTION_STRING }}" \
+            --namespace=inventory-system \
+            --dry-run=client -o yaml | kubectl apply -f -
+
+      - name: Crear/Actualizar ConfigMap
+        run: |
+          kubectl create configmap inventory-config \
+            --from-literal=ENV=dev \
+            --from-literal=API_PROVIDER_URL="${{ vars.API_PROVIDER_URL }}" \
+            --namespace=inventory-system \
+            --dry-run=client -o yaml | kubectl apply -f -
+
+      - name: Actualizar imagen en deployment
+        working-directory: k8s/base
+        run: |
+          sed -i "s|IMAGE_PLACEHOLDER|${{ env.IMAGE }}|g" deployment.yaml
+
+      - name: Deploy a AKS usando Kustomize (sin prefijo)
+        run: |
+          # Usar manifiestos base directamente para dev (sin namePrefix)
+          kubectl apply -k k8s/base
+
+      - name: Esperar a que el deployment esté listo
+        run: |
+          kubectl rollout status deployment/inventory-system-app -n inventory-system --timeout=5m
+
+      - name: Obtener IP del servicio
+        run: |
+          echo "Esperando a que se asigne IP externa..."
+          kubectl wait --for=jsonpath='{.status.loadBalancer.ingress}' \
+            service/inventory-system-service -n inventory-system --timeout=300s || true
+
+          EXTERNAL_IP=$(kubectl get service inventory-system-service -n inventory-system -o jsonpath='{.status.loadBalancer.ingress[0].ip}')
+
+          if [ -z "$EXTERNAL_IP" ]; then
+            echo "No se pudo obtener la IP externa. Verifica el servicio:"
+            kubectl get service inventory-system-service -n inventory-system
+          else
+            echo "Aplicación desplegada en: http://$EXTERNAL_IP"
+          fi
 
   approval-qa:
     needs: [deploy-dev]
@@ -118,7 +147,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Aprobar
-        run: echo "Esperando aprobación"
+        run: echo "Esperando aprobación para QA"
 
   deploy-qa:
     name: CD [qa]
@@ -128,56 +157,78 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-  
+
       - name: Obtener SHA corto
         id: short
         run: echo "short_sha=$(git rev-parse --short $GITHUB_SHA)" >> $GITHUB_OUTPUT
-        
+
       - name: Azure Login
         uses: azure/login@v2
         with:
           creds: ${{ secrets.AZURE_CREDENTIALS }}
-  
+
       - name: Establecer variables
         run: |
           IMAGE_NAME=acr${{ vars.GRUPO }}.azurecr.io/inventory-system-app
           TAG=${{ steps.short.outputs.short_sha }}
-          APP_NAME=aca-ms-${{ vars.GRUPO }}-${{ vars.ENV }}
-          RESOURCE_GROUP=rg-appg5-dev-west-01-${{ vars.GRUPO }}
-          ACR_NAME=acr${{ vars.GRUPO }}
+          AKS_NAME=aks-appg5-qa-west-01-${{ vars.GRUPO }}
+          RESOURCE_GROUP=rg-appg5-qa-west-01-${{ vars.GRUPO }}
 
           echo "IMAGE=$IMAGE_NAME:$TAG" >> $GITHUB_ENV
-          echo "APP_NAME=$APP_NAME" >> $GITHUB_ENV
+          echo "AKS_NAME=$AKS_NAME" >> $GITHUB_ENV
           echo "RESOURCE_GROUP=$RESOURCE_GROUP" >> $GITHUB_ENV
-          echo "ACR_NAME=$ACR_NAME" >> $GITHUB_ENV
 
-      - name: Configurar ACR credentials para Container App
+      - name: Configurar kubectl
         run: |
-          echo "Configurando credenciales del ACR para la Container App..."
-          ACR_SERVER=$(az acr show --name $ACR_NAME --resource-group $RESOURCE_GROUP --query loginServer --output tsv)
-          echo "Servidor ACR: $ACR_SERVER"
-          
-          # Configurar la Container App para usar managed identity con el ACR
-          az containerapp registry set \
-            --name $APP_NAME \
-            --resource-group $RESOURCE_GROUP \
-            --server $ACR_SERVER \
-            --identity system
-  
-      - name: Deploy a Azure Container App
+          az aks get-credentials --resource-group $RESOURCE_GROUP --name $AKS_NAME --overwrite-existing
+
+      - name: Crear namespace si no existe
         run: |
-          echo "Updating Azure Container App $APP_NAME to image $IMAGE"
-          az containerapp update \
-            --name $APP_NAME \
-            --resource-group $RESOURCE_GROUP \
-            --image $IMAGE \
-            --set-env-vars ENV=${{ vars.ENV }} API_PROVIDER_URL=${{ vars.API_PROVIDER_URL }} ConnectionStrings__SqlConnection="${{ vars.SQL_CONNECTION_STRING }}" 
-      
-      - name: Imprimir endpoint del Container App
+          kubectl get namespace inventory-system || kubectl create namespace inventory-system
+
+      - name: Crear/Actualizar Secret de SQL Connection
         run: |
-          ENDPOINT=$(az containerapp show --name $APP_NAME --resource-group $RESOURCE_GROUP --query properties.configuration.ingress.fqdn -o tsv)
-          echo "Endpoint del Container App: https://$ENDPOINT"
-          
+          kubectl create secret generic sql-connection-secret \
+            --from-literal=connection-string="${{ vars.SQL_CONNECTION_STRING_QA }}" \
+            --namespace=inventory-system \
+            --dry-run=client -o yaml | kubectl apply -f -
+
+      - name: Crear/Actualizar ConfigMap
+        run: |
+          kubectl create configmap inventory-config \
+            --from-literal=ENV=qa \
+            --from-literal=API_PROVIDER_URL="${{ vars.API_PROVIDER_URL_QA }}" \
+            --namespace=inventory-system \
+            --dry-run=client -o yaml | kubectl apply -f -
+
+      - name: Actualizar imagen en deployment
+        working-directory: k8s/base
+        run: |
+          sed -i "s|IMAGE_PLACEHOLDER|${{ env.IMAGE }}|g" deployment.yaml
+
+      - name: Deploy a AKS (QA)
+        run: |
+          kubectl apply -k k8s/base
+
+      - name: Esperar a que el deployment esté listo
+        run: |
+          kubectl rollout status deployment/inventory-system-app -n inventory-system --timeout=5m
+
+      - name: Obtener IP del servicio
+        run: |
+          echo "Esperando a que se asigne IP externa..."
+          kubectl wait --for=jsonpath='{.status.loadBalancer.ingress}' \
+            service/inventory-system-service -n inventory-system --timeout=300s || true
+
+          EXTERNAL_IP=$(kubectl get service inventory-system-service -n inventory-system -o jsonpath='{.status.loadBalancer.ingress[0].ip}')
+
+          if [ -z "$EXTERNAL_IP" ]; then
+            echo "No se pudo obtener la IP externa. Verifica el servicio:"
+            kubectl get service inventory-system-service -n inventory-system
+          else
+            echo "Aplicación QA desplegada en: http://$EXTERNAL_IP"
+          fi
+
   approval-prd:
     needs: [deploy-qa]
     environment:
@@ -185,7 +236,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Aprobar
-        run: echo "Esperando aprobación"
+        run: echo "Esperando aprobación para PRD"
 
   deploy-prd:
     name: CD [prd]
@@ -195,52 +246,74 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-  
+
       - name: Obtener SHA corto
         id: short
         run: echo "short_sha=$(git rev-parse --short $GITHUB_SHA)" >> $GITHUB_OUTPUT
-        
+
       - name: Azure Login
         uses: azure/login@v2
         with:
           creds: ${{ secrets.AZURE_CREDENTIALS }}
-  
+
       - name: Establecer variables
         run: |
           IMAGE_NAME=acr${{ vars.GRUPO }}.azurecr.io/inventory-system-app
           TAG=${{ steps.short.outputs.short_sha }}
-          APP_NAME=aca-ms-${{ vars.GRUPO }}-${{ vars.ENV }}
-          RESOURCE_GROUP=rg-appg5-dev-west-01-${{ vars.GRUPO }}
-          ACR_NAME=acr${{ vars.GRUPO }}
+          AKS_NAME=aks-appg5-prd-west-01-${{ vars.GRUPO }}
+          RESOURCE_GROUP=rg-appg5-prd-west-01-${{ vars.GRUPO }}
 
           echo "IMAGE=$IMAGE_NAME:$TAG" >> $GITHUB_ENV
-          echo "APP_NAME=$APP_NAME" >> $GITHUB_ENV
+          echo "AKS_NAME=$AKS_NAME" >> $GITHUB_ENV
           echo "RESOURCE_GROUP=$RESOURCE_GROUP" >> $GITHUB_ENV
-          echo "ACR_NAME=$ACR_NAME" >> $GITHUB_ENV
 
-      - name: Configurar ACR credentials para Container App
+      - name: Configurar kubectl
         run: |
-          echo "Configurando credenciales del ACR para la Container App..."
-          ACR_SERVER=$(az acr show --name $ACR_NAME --resource-group $RESOURCE_GROUP --query loginServer --output tsv)
-          echo "Servidor ACR: $ACR_SERVER"
-          
-          # Configurar la Container App para usar managed identity con el ACR
-          az containerapp registry set \
-            --name $APP_NAME \
-            --resource-group $RESOURCE_GROUP \
-            --server $ACR_SERVER \
-            --identity system
-  
-      - name: Deploy a Azure Container App
-        run: |
-          echo "Updating Azure Container App $APP_NAME to image $IMAGE"
-          az containerapp update \
-            --name $APP_NAME \
-            --resource-group $RESOURCE_GROUP \
-            --image $IMAGE \
-            --set-env-vars ENV=${{ vars.ENV }} API_PROVIDER_URL=${{ vars.API_PROVIDER_URL }} ConnectionStrings__SqlConnection="${{ vars.SQL_CONNECTION_STRING }}" 
+          az aks get-credentials --resource-group $RESOURCE_GROUP --name $AKS_NAME --overwrite-existing
 
-      - name: Imprimir endpoint del Container App
+      - name: Crear namespace si no existe
         run: |
-          ENDPOINT=$(az containerapp show --name $APP_NAME --resource-group $RESOURCE_GROUP --query properties.configuration.ingress.fqdn -o tsv)
-          echo "Endpoint del Container App: https://$ENDPOINT"
+          kubectl get namespace inventory-system || kubectl create namespace inventory-system
+
+      - name: Crear/Actualizar Secret de SQL Connection
+        run: |
+          kubectl create secret generic sql-connection-secret \
+            --from-literal=connection-string="${{ vars.SQL_CONNECTION_STRING_PRD }}" \
+            --namespace=inventory-system \
+            --dry-run=client -o yaml | kubectl apply -f -
+
+      - name: Crear/Actualizar ConfigMap
+        run: |
+          kubectl create configmap inventory-config \
+            --from-literal=ENV=prd \
+            --from-literal=API_PROVIDER_URL="${{ vars.API_PROVIDER_URL_PRD }}" \
+            --namespace=inventory-system \
+            --dry-run=client -o yaml | kubectl apply -f -
+
+      - name: Actualizar imagen en deployment
+        working-directory: k8s/base
+        run: |
+          sed -i "s|IMAGE_PLACEHOLDER|${{ env.IMAGE }}|g" deployment.yaml
+
+      - name: Deploy a AKS (PRD)
+        run: |
+          kubectl apply -k k8s/base
+
+      - name: Esperar a que el deployment esté listo
+        run: |
+          kubectl rollout status deployment/inventory-system-app -n inventory-system --timeout=5m
+
+      - name: Obtener IP del servicio
+        run: |
+          echo "Esperando a que se asigne IP externa..."
+          kubectl wait --for=jsonpath='{.status.loadBalancer.ingress}' \
+            service/inventory-system-service -n inventory-system --timeout=300s || true
+
+          EXTERNAL_IP=$(kubectl get service inventory-system-service -n inventory-system -o jsonpath='{.status.loadBalancer.ingress[0].ip}')
+
+          if [ -z "$EXTERNAL_IP" ]; then
+            echo "No se pudo obtener la IP externa. Verifica el servicio:"
+            kubectl get service inventory-system-service -n inventory-system
+          else
+            echo "Aplicación PRD desplegada en: http://$EXTERNAL_IP"
+          fi
