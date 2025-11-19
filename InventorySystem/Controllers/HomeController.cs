@@ -18,16 +18,10 @@ namespace InventorySystem.Controllers
             _movimientoService = movimientoService;
         }
 
-        public async Task<IActionResult> Index()
+        public IActionResult Index()
         {
-            var productos = _productService.GetAllProducts();
-            var ultimosMovimientos = await _movimientoService.GetUltimosMovimientosAsync(5);
-
-            ViewBag.TotalProductos = productos.Count;
-            ViewBag.ProductosBajoStock = productos.Count(p => p.StockActual <= p.StockMinimo);
-            ViewBag.MovimientosHoy = await _movimientoService.GetTotalMovimientosHoyAsync();
-            ViewBag.UltimosMovimientos = ultimosMovimientos;
-
+            // Página simple sin acceso a BD para health checks
+            ViewBag.Message = "Aplicacion ejecutandose correctamente";
             return View();
         }
 
