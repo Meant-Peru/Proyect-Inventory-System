@@ -105,12 +105,12 @@ jobs:
 
       - name: Crear/Actualizar Secret de SQL Connection
         run: |
-          if [ -z "${{ vars.SQL_CONNECTION_STRING }}" ]; then
-            echo "ERROR: SQL_CONNECTION_STRING está vacío. Configura esta variable en GitHub Settings > Environments > dev > Variables"
+          if [ -z "${{ secrets.SQL_CONNECTION_STRING }}" ]; then
+            echo "ERROR: SQL_CONNECTION_STRING está vacío. Configura este secret en GitHub Settings > Environments > dev > Secrets"
             exit 1
           fi
           kubectl create secret generic sql-connection-secret \
-            --from-literal=connection-string="${{ vars.SQL_CONNECTION_STRING }}" \
+            --from-literal=connection-string="${{ secrets.SQL_CONNECTION_STRING }}" \
             --namespace=inventory-system \
             --dry-run=client -o yaml | kubectl apply -f -
 
@@ -223,12 +223,12 @@ jobs:
 
       - name: Crear/Actualizar Secret de SQL Connection
         run: |
-          if [ -z "${{ vars.SQL_CONNECTION_STRING_QA }}" ]; then
-            echo "ERROR: SQL_CONNECTION_STRING_QA está vacío. Configura esta variable en GitHub Settings > Environments > qa > Variables"
+          if [ -z "${{ secrets.SQL_CONNECTION_STRING_QA }}" ]; then
+            echo "ERROR: SQL_CONNECTION_STRING_QA está vacío. Configura este secret en GitHub Settings > Environments > qa > Secrets"
             exit 1
           fi
           kubectl create secret generic sql-connection-secret \
-            --from-literal=connection-string="${{ vars.SQL_CONNECTION_STRING_QA }}" \
+            --from-literal=connection-string="${{ secrets.SQL_CONNECTION_STRING_QA }}" \
             --namespace=inventory-system \
             --dry-run=client -o yaml | kubectl apply -f -
 
@@ -339,12 +339,12 @@ jobs:
 
       - name: Crear/Actualizar Secret de SQL Connection
         run: |
-          if [ -z "${{ vars.SQL_CONNECTION_STRING_PRD }}" ]; then
-            echo "ERROR: SQL_CONNECTION_STRING_PRD está vacío. Configura esta variable en GitHub Settings > Environments > prd > Variables"
+          if [ -z "${{ secrets.SQL_CONNECTION_STRING_PRD }}" ]; then
+            echo "ERROR: SQL_CONNECTION_STRING_PRD está vacío. Configura este secret en GitHub Settings > Environments > prd > Secrets"
             exit 1
           fi
           kubectl create secret generic sql-connection-secret \
-            --from-literal=connection-string="${{ vars.SQL_CONNECTION_STRING_PRD }}" \
+            --from-literal=connection-string="${{ secrets.SQL_CONNECTION_STRING_PRD }}" \
             --namespace=inventory-system \
             --dry-run=client -o yaml | kubectl apply -f -
 

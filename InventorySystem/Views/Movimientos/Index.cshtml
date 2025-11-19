@@ -1,0 +1,98 @@
+@model List<InventorySystem.Entities.MovimientosInventario>
+
+@{
+    ViewData["Title"] = "Historial de Movimientos";
+}
+
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="mb-0">
+            <i class="bi bi-clock-history me-2"></i>Historial de Movimientos
+        </h2>
+        <div>
+            <a asp-action="Entrada" class="btn btn-success me-2">
+                <i class="bi bi-box-arrow-in-down me-1"></i>Nueva Entrada
+            </a>
+            <a asp-action="Salida" class="btn btn-danger">
+                <i class="bi bi-box-arrow-up me-1"></i>Nueva Salida
+            </a>
+        </div>
+    </div>
+
+    @if (TempData["Success"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            <i class="bi bi-check-circle me-2"></i>@TempData["Success"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+
+    <div class="card shadow-sm">
+        <div class="card-body">
+            @if (Model.Count == 0)
+            {
+                <div class="text-center py-5">
+                    <i class="bi bi-inbox display-1 text-muted"></i>
+                    <p class="text-muted mt-3">No hay movimientos registrados</p>
+                </div>
+            }
+            else
+            {
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Fecha</th>
+                                <th>Producto</th>
+                                <th>Categoría</th>
+                                <th>Tipo</th>
+                                <th class="text-end">Cantidad</th>
+                                <th>Observaciones</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var movimiento in Model)
+                            {
+                                <tr>
+                                    <td>
+                                        <small class="text-muted">
+                                            @movimiento.FechaMovimiento.ToString("dd/MM/yyyy HH:mm")
+                                        </small>
+                                    </td>
+                                    <td>@movimiento.Producto?.Nombre</td>
+                                    <td>
+                                        <span class="badge bg-secondary">
+                                            @movimiento.Producto?.Categoria?.Nombre
+                                        </span>
+                                    </td>
+                                    <td>
+                                        @if (movimiento.TipoMovimiento == "Entrada")
+                                        {
+                                            <span class="badge bg-success">
+                                                <i class="bi bi-arrow-down me-1"></i>Entrada
+                                            </span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge bg-danger">
+                                                <i class="bi bi-arrow-up me-1"></i>Salida
+                                            </span>
+                                        }
+                                    </td>
+                                    <td class="text-end">
+                                        <strong>@movimiento.Cantidad</strong>
+                                    </td>
+                                    <td>
+                                        <small class="text-muted">
+                                            @(movimiento.Observaciones ?? "-")
+                                        </small>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+        </div>
+    </div>
+</div>

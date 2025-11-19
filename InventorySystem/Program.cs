@@ -23,6 +23,7 @@ builder.Services.AddDbContext<AppDbContext>(options =>
 
 builder.Services.AddScoped<ProductService>();
 builder.Services.AddScoped<CategoryService>();
+builder.Services.AddScoped<MovimientoService>();
 
 var app = builder.Build();
 

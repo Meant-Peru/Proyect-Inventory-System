@@ -52,6 +52,18 @@ build_metadata.AdditionalFiles.CssScope =
 build_metadata.AdditionalFiles.TargetPath = Vmlld3MvSG9tZS9Qcml2YWN5LmNzaHRtbA==
 build_metadata.AdditionalFiles.CssScope = 
 
+[/Volumes/Data/devops/Proyect-Inventory-System/InventorySystem/Views/Movimientos/Entrada.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3MvTW92aW1pZW50b3MvRW50cmFkYS5jc2h0bWw=
+build_metadata.AdditionalFiles.CssScope = 
+
+[/Volumes/Data/devops/Proyect-Inventory-System/InventorySystem/Views/Movimientos/Index.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3MvTW92aW1pZW50b3MvSW5kZXguY3NodG1s
+build_metadata.AdditionalFiles.CssScope = 
+
+[/Volumes/Data/devops/Proyect-Inventory-System/InventorySystem/Views/Movimientos/Salida.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3MvTW92aW1pZW50b3MvU2FsaWRhLmNzaHRtbA==
+build_metadata.AdditionalFiles.CssScope = 
+
 [/Volumes/Data/devops/Proyect-Inventory-System/InventorySystem/Views/Productos/Create.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3MvUHJvZHVjdG9zL0NyZWF0ZS5jc2h0bWw=
 build_metadata.AdditionalFiles.CssScope = 

@@ -11,6 +11,7 @@ public class AppDbContext : DbContext
 
     public DbSet<Productos> Productos { get; set; } = null!;
     public DbSet<Categorias> Categorias { get; set; } = null!;
+    public DbSet<MovimientosInventario> MovimientosInventario { get; set; } = null!;
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -18,6 +19,12 @@ public class AppDbContext : DbContext
             .HasOne(p => p.Categoria)
             .WithMany(c => c.Productos)
             .HasForeignKey(p => p.CategoriaID)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        modelBuilder.Entity<MovimientosInventario>()
+            .HasOne(m => m.Producto)
+            .WithMany()
+            .HasForeignKey(m => m.ProductoID)
             .OnDelete(DeleteBehavior.Restrict);
 
         base.OnModelCreating(modelBuilder);

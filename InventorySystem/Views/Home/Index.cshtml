@@ -1,8 +1,167 @@
-﻿@{
-    ViewData["Title"] = "Home Page";
+@{
+    ViewData["Title"] = "Dashboard";
 }
 
-<div class="text-center">
-    <h1 class="display-4">Welcome</h1>
-@*     <p>Learn about <a href="https://learn.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
- *@</div>
+<div class="container mt-4">
+    <h2 class="mb-4">
+        <i class="bi bi-speedometer2 me-2"></i>Dashboard
+    </h2>
+
+    <!-- Cards de Estadísticas -->
+    <div class="row g-4 mb-4">
+        <div class="col-md-4">
+            <div class="card shadow-sm border-start border-primary border-4">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="text-muted mb-1">Total Productos</h6>
+                            <h2 class="mb-0">@ViewBag.TotalProductos</h2>
+                        </div>
+                        <div class="fs-1 text-primary">
+                            <i class="bi bi-box-seam"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="card shadow-sm border-start border-warning border-4">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="text-muted mb-1">Stock Bajo</h6>
+                            <h2 class="mb-0">@ViewBag.ProductosBajoStock</h2>
+                        </div>
+                        <div class="fs-1 text-warning">
+                            <i class="bi bi-exclamation-triangle"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="card shadow-sm border-start border-success border-4">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="text-muted mb-1">Movimientos Hoy</h6>
+                            <h2 class="mb-0">@ViewBag.MovimientosHoy</h2>
+                        </div>
+                        <div class="fs-1 text-success">
+                            <i class="bi bi-arrow-left-right"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Accesos Rápidos -->
+    <div class="row g-4 mb-4">
+        <div class="col-md-12">
+            <div class="card shadow-sm">
+                <div class="card-header bg-white">
+                    <h5 class="mb-0">Accesos Rápidos</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row g-3">
+                        <div class="col-md-3">
+                            <a href="@Url.Action("Index", "Productos")" class="btn btn-outline-primary w-100 py-3">
+                                <i class="bi bi-box-seam d-block fs-3 mb-2"></i>
+                                Ver Productos
+                            </a>
+                        </div>
+                        <div class="col-md-3">
+                            <a href="@Url.Action("Entrada", "Movimientos")" class="btn btn-outline-success w-100 py-3">
+                                <i class="bi bi-box-arrow-in-down d-block fs-3 mb-2"></i>
+                                Nueva Entrada
+                            </a>
+                        </div>
+                        <div class="col-md-3">
+                            <a href="@Url.Action("Salida", "Movimientos")" class="btn btn-outline-danger w-100 py-3">
+                                <i class="bi bi-box-arrow-up d-block fs-3 mb-2"></i>
+                                Nueva Salida
+                            </a>
+                        </div>
+                        <div class="col-md-3">
+                            <a href="@Url.Action("Index", "Movimientos")" class="btn btn-outline-info w-100 py-3">
+                                <i class="bi bi-clock-history d-block fs-3 mb-2"></i>
+                                Ver Historial
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Últimos Movimientos -->
+    <div class="row">
+        <div class="col-md-12">
+            <div class="card shadow-sm">
+                <div class="card-header bg-white d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">Últimos Movimientos</h5>
+                    <a href="@Url.Action("Index", "Movimientos")" class="btn btn-sm btn-outline-primary">
+                        Ver Todos
+                    </a>
+                </div>
+                <div class="card-body">
+                    @if (ViewBag.UltimosMovimientos != null && ViewBag.UltimosMovimientos.Count > 0)
+                    {
+                        <div class="table-responsive">
+                            <table class="table table-hover mb-0">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>Fecha</th>
+                                        <th>Producto</th>
+                                        <th>Tipo</th>
+                                        <th class="text-end">Cantidad</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var movimiento in ViewBag.UltimosMovimientos)
+                                    {
+                                        <tr>
+                                            <td>
+                                                <small class="text-muted">
+                                                    @movimiento.FechaMovimiento.ToString("dd/MM/yyyy HH:mm")
+                                                </small>
+                                            </td>
+                                            <td>@movimiento.Producto?.Nombre</td>
+                                            <td>
+                                                @if (movimiento.TipoMovimiento == "Entrada")
+                                                {
+                                                    <span class="badge bg-success">
+                                                        <i class="bi bi-arrow-down me-1"></i>Entrada
+                                                    </span>
+                                                }
+                                                else
+                                                {
+                                                    <span class="badge bg-danger">
+                                                        <i class="bi bi-arrow-up me-1"></i>Salida
+                                                    </span>
+                                                }
+                                            </td>
+                                            <td class="text-end">
+                                                <strong>@movimiento.Cantidad</strong>
+                                            </td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="text-center py-4">
+                            <i class="bi bi-inbox display-4 text-muted"></i>
+                            <p class="text-muted mt-2">No hay movimientos recientes</p>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
