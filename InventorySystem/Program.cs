@@ -36,31 +36,20 @@ using (var scope = app.Services.CreateScope())
     try
     {
         var context = services.GetRequiredService<AppDbContext>();
+        var connectionString = builder.Configuration.GetConnectionString("SqlConnection");
         logger.LogInformation("Verificando conexion a base de datos...");
+        logger.LogInformation("Connection string: Server={Server}", connectionString?.Split(';')[0]);
 
-        // Verificar si podemos conectarnos
-        var canConnect = await context.Database.CanConnectAsync();
-
-        if (canConnect)
-        {
-            logger.LogInformation("Conexión a base de datos exitosa");
-
-            // Aplicar migraciones pendientes (crea tablas si no existen)
-            logger.LogInformation("Aplicando migraciones...");
-            await context.Database.MigrateAsync();
-            logger.LogInformation("Migraciones aplicadas exitosamente");
-        }
-        else
-        {
-            throw new Exception("No se pudo conectar a la base de datos");
-        }
-
+        // Aplicar migraciones directamente - esto manejará la conexión internamente
+        logger.LogInformation("Aplicando migraciones...");
+        await context.Database.MigrateAsync();
+        logger.LogInformation("Migraciones aplicadas exitosamente");
         logger.LogInformation("Base de datos lista");
     }
     catch (Exception ex)
     {
-        logger.LogError(ex, "Error al inicializar la base de datos: {Message}", ex.Message);
-        throw;
+        logger.LogError(ex, "Error al inicializar la base de datos: {Message}. La aplicación continuará pero puede tener problemas de conectividad.", ex.Message);
+        // NO lanzar excepción - permitir que la app inicie y maneje errores de BD en tiempo de ejecución
     }
 }
 
