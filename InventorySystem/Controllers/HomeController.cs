@@ -20,7 +20,7 @@ namespace InventorySystem.Controllers
 
         public async Task<IActionResult> Index()
         {
-            var productos = await _productService.GetAllProductsAsync();
+            var productos = _productService.GetAllProducts();
             var ultimosMovimientos = await _movimientoService.GetUltimosMovimientosAsync(5);
 
             ViewBag.TotalProductos = productos.Count;

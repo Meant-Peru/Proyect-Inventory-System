@@ -21,9 +21,9 @@ public class MovimientosController : Controller
         return View(movimientos);
     }
 
-    public async Task<IActionResult> Entrada()
+    public IActionResult Entrada()
     {
-        var productos = await _productService.GetAllProductsAsync();
+        var productos = _productService.GetAllProducts();
         ViewBag.Productos = new SelectList(productos, "ProductoID", "Nombre");
         return View();
     }
@@ -49,9 +49,9 @@ public class MovimientosController : Controller
         return RedirectToAction(nameof(Entrada));
     }
 
-    public async Task<IActionResult> Salida()
+    public IActionResult Salida()
     {
-        var productos = await _productService.GetAllProductsAsync();
+        var productos = _productService.GetAllProducts();
         ViewBag.Productos = new SelectList(productos, "ProductoID", "Nombre");
         return View();
     }
