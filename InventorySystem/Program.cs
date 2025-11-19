@@ -27,7 +27,7 @@ builder.Services.AddScoped<MovimientoService>();
 
 var app = builder.Build();
 
-// Crear base de datos y aplicar migraciones
+// Verificar conexión a base de datos y aplicar migraciones
 using (var scope = app.Services.CreateScope())
 {
     var services = scope.ServiceProvider;
@@ -38,8 +38,22 @@ using (var scope = app.Services.CreateScope())
         var context = services.GetRequiredService<AppDbContext>();
         logger.LogInformation("Verificando conexion a base de datos...");
 
-        // Asegurar que la base de datos existe
-        await context.Database.EnsureCreatedAsync();
+        // Verificar si podemos conectarnos
+        var canConnect = await context.Database.CanConnectAsync();
+
+        if (canConnect)
+        {
+            logger.LogInformation("Conexión a base de datos exitosa");
+
+            // Aplicar migraciones pendientes (crea tablas si no existen)
+            logger.LogInformation("Aplicando migraciones...");
+            await context.Database.MigrateAsync();
+            logger.LogInformation("Migraciones aplicadas exitosamente");
+        }
+        else
+        {
+            throw new Exception("No se pudo conectar a la base de datos");
+        }
 
         logger.LogInformation("Base de datos lista");
     }
