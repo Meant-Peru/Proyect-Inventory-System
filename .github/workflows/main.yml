@@ -103,6 +103,18 @@ jobs:
             --namespace=inventory-system \
             --dry-run=client -o yaml | kubectl apply -f -
 
+      - name: Crear placeholder secret inicial (si no existe)
+        run: |
+          # Crear secret placeholder para que el CSI driver lo pueda actualizar posteriormente
+          if ! kubectl get secret sql-connection-secret -n inventory-system &> /dev/null; then
+            echo "Creando placeholder secret inicial..."
+            kubectl create secret generic sql-connection-secret \
+              --from-literal=ConnectionStrings__SqlConnection="placeholder" \
+              -n inventory-system
+          else
+            echo "Secret ya existe, el CSI driver lo actualizará automáticamente"
+          fi
+
       - name: Actualizar imagen en deployment
         working-directory: k8s/base
         run: |
@@ -197,6 +209,18 @@ jobs:
             --namespace=inventory-system \
             --dry-run=client -o yaml | kubectl apply -f -
 
+      - name: Crear placeholder secret inicial (si no existe)
+        run: |
+          # Crear secret placeholder para que el CSI driver lo pueda actualizar posteriormente
+          if ! kubectl get secret sql-connection-secret -n inventory-system &> /dev/null; then
+            echo "Creando placeholder secret inicial..."
+            kubectl create secret generic sql-connection-secret \
+              --from-literal=ConnectionStrings__SqlConnection="placeholder" \
+              -n inventory-system
+          else
+            echo "Secret ya existe, el CSI driver lo actualizará automáticamente"
+          fi
+
       - name: Actualizar imagen en deployment
         working-directory: k8s/base
         run: |
@@ -290,6 +314,18 @@ jobs:
             --docker-password=${{ secrets.ACR_PASSWORD }} \
             --namespace=inventory-system \
             --dry-run=client -o yaml | kubectl apply -f -
+
+      - name: Crear placeholder secret inicial (si no existe)
+        run: |
+          # Crear secret placeholder para que el CSI driver lo pueda actualizar posteriormente
+          if ! kubectl get secret sql-connection-secret -n inventory-system &> /dev/null; then
+            echo "Creando placeholder secret inicial..."
+            kubectl create secret generic sql-connection-secret \
+              --from-literal=ConnectionStrings__SqlConnection="placeholder" \
+              -n inventory-system
+          else
+            echo "Secret ya existe, el CSI driver lo actualizará automáticamente"
+          fi
 
       - name: Actualizar imagen en deployment
         working-directory: k8s/base
