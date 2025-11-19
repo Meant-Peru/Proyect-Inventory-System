@@ -12,8 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace InventorySystem.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20251119043803_AddMovimientosInventario")]
-    partial class AddMovimientosInventario
+    [Migration("20251119050430_InitialCreate")]
+    partial class InitialCreate
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
