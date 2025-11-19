@@ -27,31 +27,10 @@ builder.Services.AddScoped<MovimientoService>();
 
 var app = builder.Build();
 
-// Verificar conexión a base de datos y aplicar migraciones
-using (var scope = app.Services.CreateScope())
-{
-    var services = scope.ServiceProvider;
-    var logger = services.GetRequiredService<ILogger<Program>>();
-
-    try
-    {
-        var context = services.GetRequiredService<AppDbContext>();
-        var connectionString = builder.Configuration.GetConnectionString("SqlConnection");
-        logger.LogInformation("Verificando conexion a base de datos...");
-        logger.LogInformation("Connection string: Server={Server}", connectionString?.Split(';')[0]);
-
-        // Aplicar migraciones directamente - esto manejará la conexión internamente
-        logger.LogInformation("Aplicando migraciones...");
-        await context.Database.MigrateAsync();
-        logger.LogInformation("Migraciones aplicadas exitosamente");
-        logger.LogInformation("Base de datos lista");
-    }
-    catch (Exception ex)
-    {
-        logger.LogError(ex, "Error al inicializar la base de datos: {Message}. La aplicación continuará pero puede tener problemas de conectividad.", ex.Message);
-        // NO lanzar excepción - permitir que la app inicie y maneje errores de BD en tiempo de ejecución
-    }
-}
+// OMITIR verificación de BD en startup para permitir que la app inicie
+// Las migraciones se aplicarán manualmente o en un job separado
+var logger = app.Services.GetRequiredService<ILogger<Program>>();
+logger.LogInformation("Aplicacion iniciada - omitiendo verificacion de BD en startup");
 
 // Configure the HTTP request pipeline.
 if (!app.Environment.IsDevelopment())
