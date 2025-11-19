@@ -2,7 +2,7 @@
     ViewData["Title"] = "Dashboard";
 }
 
-<div class="container-fluid py-5" style="background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%); min-height: 40vh;">
+<div class="container-fluid py-5" style="background-color: #2c3e50; min-height: 40vh;">
     <div class="container">
         <div class="row text-center text-white">
             <div class="col-12">
@@ -26,8 +26,10 @@
                     </div>
                     <h3 class="card-title fw-bold mb-3">Productos</h3>
                     <p class="card-text text-muted mb-4">Administra el catálogo completo de productos, stock y información detallada</p>
-                    <a href="@Url.Action("Index", "Productos")" class="btn btn-lg w-100" style="background-color: #2c3e50; border-color: #2c3e50; color: white;">
-                        Ver Productos
+                    <a href="@Url.Action("Index", "Productos")" class="btn btn-circle" style="background-color: #2c3e50; border-color: #2c3e50; color: white;">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" class="bi bi-arrow-right" viewBox="0 0 16 16">
+                            <path fill-rule="evenodd" d="M1 8a.5.5 0 0 1 .5-.5h11.793l-3.147-3.146a.5.5 0 0 1 .708-.708l4 4a.5.5 0 0 1 0 .708l-4 4a.5.5 0 0 1-.708-.708L13.293 8.5H1.5A.5.5 0 0 1 1 8"/>
+                        </svg>
                     </a>
                 </div>
             </div>
@@ -45,8 +47,10 @@
                     </div>
                     <h3 class="card-title fw-bold mb-3">Categorías</h3>
                     <p class="card-text text-muted mb-4">Organiza tus productos en categorías para una mejor clasificación</p>
-                    <a href="@Url.Action("Index", "Categorias")" class="btn btn-lg w-100" style="background-color: #16a085; border-color: #16a085; color: white;">
-                        Ver Categorías
+                    <a href="@Url.Action("Index", "Categorias")" class="btn btn-circle" style="background-color: #16a085; border-color: #16a085; color: white;">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" class="bi bi-arrow-right" viewBox="0 0 16 16">
+                            <path fill-rule="evenodd" d="M1 8a.5.5 0 0 1 .5-.5h11.793l-3.147-3.146a.5.5 0 0 1 .708-.708l4 4a.5.5 0 0 1 0 .708l-4 4a.5.5 0 0 1-.708-.708L13.293 8.5H1.5A.5.5 0 0 1 1 8"/>
+                        </svg>
                     </a>
                 </div>
             </div>
@@ -63,8 +67,10 @@
                     </div>
                     <h3 class="card-title fw-bold mb-3">Movimientos</h3>
                     <p class="card-text text-muted mb-4">Registra y consulta entradas, salidas y ajustes de inventario</p>
-                    <a href="@Url.Action("Index", "Movimientos")" class="btn btn-lg w-100" style="background-color: #34495e; border-color: #34495e; color: white;">
-                        Ver Movimientos
+                    <a href="@Url.Action("Index", "Movimientos")" class="btn btn-circle" style="background-color: #34495e; border-color: #34495e; color: white;">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" class="bi bi-arrow-right" viewBox="0 0 16 16">
+                            <path fill-rule="evenodd" d="M1 8a.5.5 0 0 1 .5-.5h11.793l-3.147-3.146a.5.5 0 0 1 .708-.708l4 4a.5.5 0 0 1 0 .708l-4 4a.5.5 0 0 1-.708-.708L13.293 8.5H1.5A.5.5 0 0 1 1 8"/>
+                        </svg>
                     </a>
                 </div>
             </div>
@@ -103,5 +109,21 @@
     .hover-card:hover {
         transform: translateY(-10px);
         box-shadow: 0 1rem 3rem rgba(0,0,0,.175)!important;
+    }
+
+    .btn-circle {
+        width: 60px;
+        height: 60px;
+        border-radius: 50%;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        padding: 0;
+        transition: all 0.3s ease;
+    }
+
+    .btn-circle:hover {
+        transform: scale(1.1);
+        box-shadow: 0 0.5rem 1rem rgba(0,0,0,.15);
     }
 </style>
