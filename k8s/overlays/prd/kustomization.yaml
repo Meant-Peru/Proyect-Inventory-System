@@ -15,13 +15,27 @@ patches:
     patch: |-
       - op: replace
         path: /spec/replicas
-        value: 3
-
-configMapGenerator:
-  - name: inventory-config
-    behavior: merge
-    literals:
-      - ENV=prd
+        value: 2
+      - op: replace
+        path: /spec/template/spec/volumes/0/csi/volumeAttributes/secretProviderClass
+        value: "prd-azure-keyvault-secrets"
+  - target:
+      kind: SecretProviderClass
+      name: azure-keyvault-secrets
+    patch: |-
+      - op: replace
+        path: /spec/parameters/userAssignedIdentityID
+        value: "90069da9-fc1a-4569-a755-2437f880935f"
+      - op: replace
+        path: /spec/parameters/keyvaultName
+        value: "kv-appg5-prd"
+  - target:
+      kind: ConfigMap
+      name: inventory-config
+    patch: |-
+      - op: replace
+        path: /data/ENV
+        value: "prd"
 
 commonLabels:
   environment: prd

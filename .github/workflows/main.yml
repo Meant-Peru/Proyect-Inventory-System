@@ -103,39 +103,15 @@ jobs:
             --namespace=inventory-system \
             --dry-run=client -o yaml | kubectl apply -f -
 
-      - name: Crear/Actualizar Secret de SQL Connection
-        run: |
-          if [ -z "${{ secrets.SQL_CONNECTION_STRING }}" ]; then
-            echo "ERROR: SQL_CONNECTION_STRING está vacío. Configura este secret en GitHub Settings > Environments > dev > Secrets"
-            exit 1
-          fi
-          kubectl create secret generic sql-connection-secret \
-            --from-literal=connection-string="${{ secrets.SQL_CONNECTION_STRING }}" \
-            --namespace=inventory-system \
-            --dry-run=client -o yaml | kubectl apply -f -
-
-      - name: Crear/Actualizar ConfigMap
-        run: |
-          kubectl create configmap inventory-config \
-            --from-literal=ENV=dev \
-            --from-literal=API_PROVIDER_URL="${{ vars.API_PROVIDER_URL }}" \
-            --namespace=inventory-system \
-            --dry-run=client -o yaml | kubectl apply -f -
-
       - name: Actualizar imagen en deployment
         working-directory: k8s/base
         run: |
           sed -i "s|IMAGE_PLACEHOLDER|${{ env.IMAGE }}|g" deployment.yaml
 
-      - name: Forzar eliminación de pods antiguos
-        run: |
-          # Eliminar deployment existente si hay problemas
-          kubectl delete deployment inventory-system-app -n inventory-system --ignore-not-found=true --grace-period=0 --force || true
-          sleep 5
-
-      - name: Deploy a AKS usando Kustomize (sin prefijo)
+      - name: Deploy a AKS usando Kustomize (base sin prefijo para DEV)
         run: |
           # Usar manifiestos base directamente para dev (sin namePrefix)
+          # Los secrets vienen de Azure Key Vault automáticamente
           kubectl apply -k k8s/base
 
       - name: Esperar a que el deployment esté listo
@@ -221,42 +197,20 @@ jobs:
             --namespace=inventory-system \
             --dry-run=client -o yaml | kubectl apply -f -
 
-      - name: Crear/Actualizar Secret de SQL Connection
-        run: |
-          if [ -z "${{ secrets.SQL_CONNECTION_STRING_QA }}" ]; then
-            echo "ERROR: SQL_CONNECTION_STRING_QA está vacío. Configura este secret en GitHub Settings > Environments > qa > Secrets"
-            exit 1
-          fi
-          kubectl create secret generic sql-connection-secret \
-            --from-literal=connection-string="${{ secrets.SQL_CONNECTION_STRING_QA }}" \
-            --namespace=inventory-system \
-            --dry-run=client -o yaml | kubectl apply -f -
-
-      - name: Crear/Actualizar ConfigMap
-        run: |
-          kubectl create configmap inventory-config \
-            --from-literal=ENV=qa \
-            --from-literal=API_PROVIDER_URL="${{ vars.API_PROVIDER_URL_QA }}" \
-            --namespace=inventory-system \
-            --dry-run=client -o yaml | kubectl apply -f -
-
       - name: Actualizar imagen en deployment
         working-directory: k8s/base
         run: |
           sed -i "s|IMAGE_PLACEHOLDER|${{ env.IMAGE }}|g" deployment.yaml
 
-      - name: Forzar eliminación de pods antiguos (QA)
+      - name: Deploy a AKS QA usando Kustomize Overlay
         run: |
-          kubectl delete deployment inventory-system-app -n inventory-system --ignore-not-found=true --grace-period=0 --force || true
-          sleep 5
-
-      - name: Deploy a AKS (QA)
-        run: |
-          kubectl apply -k k8s/base
+          # Usar overlay de QA con namePrefix qa-
+          # Los secrets vienen de Azure Key Vault automáticamente
+          kubectl apply -k k8s/overlays/qa
 
       - name: Esperar a que el deployment esté listo
         run: |
-          kubectl rollout status deployment/inventory-system-app -n inventory-system --timeout=5m || {
+          kubectl rollout status deployment/qa-inventory-system-app -n inventory-system --timeout=5m || {
             echo "=== DEPLOYMENT FAILED - DEBUG INFO ==="
             echo "--- Pod Status ---"
             kubectl get pods -n inventory-system -l app=inventory-system
@@ -271,13 +225,13 @@ jobs:
         run: |
           echo "Esperando a que se asigne IP externa..."
           kubectl wait --for=jsonpath='{.status.loadBalancer.ingress}' \
-            service/inventory-system-service -n inventory-system --timeout=300s || true
+            service/qa-inventory-system-service -n inventory-system --timeout=300s || true
 
-          EXTERNAL_IP=$(kubectl get service inventory-system-service -n inventory-system -o jsonpath='{.status.loadBalancer.ingress[0].ip}')
+          EXTERNAL_IP=$(kubectl get service qa-inventory-system-service -n inventory-system -o jsonpath='{.status.loadBalancer.ingress[0].ip}')
 
           if [ -z "$EXTERNAL_IP" ]; then
             echo "No se pudo obtener la IP externa. Verifica el servicio:"
-            kubectl get service inventory-system-service -n inventory-system
+            kubectl get service qa-inventory-system-service -n inventory-system
           else
             echo "Aplicación QA desplegada en: http://$EXTERNAL_IP"
           fi
@@ -337,42 +291,20 @@ jobs:
             --namespace=inventory-system \
             --dry-run=client -o yaml | kubectl apply -f -
 
-      - name: Crear/Actualizar Secret de SQL Connection
-        run: |
-          if [ -z "${{ secrets.SQL_CONNECTION_STRING_PRD }}" ]; then
-            echo "ERROR: SQL_CONNECTION_STRING_PRD está vacío. Configura este secret en GitHub Settings > Environments > prd > Secrets"
-            exit 1
-          fi
-          kubectl create secret generic sql-connection-secret \
-            --from-literal=connection-string="${{ secrets.SQL_CONNECTION_STRING_PRD }}" \
-            --namespace=inventory-system \
-            --dry-run=client -o yaml | kubectl apply -f -
-
-      - name: Crear/Actualizar ConfigMap
-        run: |
-          kubectl create configmap inventory-config \
-            --from-literal=ENV=prd \
-            --from-literal=API_PROVIDER_URL="${{ vars.API_PROVIDER_URL_PRD }}" \
-            --namespace=inventory-system \
-            --dry-run=client -o yaml | kubectl apply -f -
-
       - name: Actualizar imagen en deployment
         working-directory: k8s/base
         run: |
           sed -i "s|IMAGE_PLACEHOLDER|${{ env.IMAGE }}|g" deployment.yaml
 
-      - name: Forzar eliminación de pods antiguos (PRD)
+      - name: Deploy a AKS PRD usando Kustomize Overlay
         run: |
-          kubectl delete deployment inventory-system-app -n inventory-system --ignore-not-found=true --grace-period=0 --force || true
-          sleep 5
-
-      - name: Deploy a AKS (PRD)
-        run: |
-          kubectl apply -k k8s/base
+          # Usar overlay de PRD con namePrefix prd-
+          # Los secrets vienen de Azure Key Vault automáticamente
+          kubectl apply -k k8s/overlays/prd
 
       - name: Esperar a que el deployment esté listo
         run: |
-          kubectl rollout status deployment/inventory-system-app -n inventory-system --timeout=5m || {
+          kubectl rollout status deployment/prd-inventory-system-app -n inventory-system --timeout=5m || {
             echo "=== DEPLOYMENT FAILED - DEBUG INFO ==="
             echo "--- Pod Status ---"
             kubectl get pods -n inventory-system -l app=inventory-system
@@ -387,13 +319,13 @@ jobs:
         run: |
           echo "Esperando a que se asigne IP externa..."
           kubectl wait --for=jsonpath='{.status.loadBalancer.ingress}' \
-            service/inventory-system-service -n inventory-system --timeout=300s || true
+            service/prd-inventory-system-service -n inventory-system --timeout=300s || true
 
-          EXTERNAL_IP=$(kubectl get service inventory-system-service -n inventory-system -o jsonpath='{.status.loadBalancer.ingress[0].ip}')
+          EXTERNAL_IP=$(kubectl get service prd-inventory-system-service -n inventory-system -o jsonpath='{.status.loadBalancer.ingress[0].ip}')
 
           if [ -z "$EXTERNAL_IP" ]; then
             echo "No se pudo obtener la IP externa. Verifica el servicio:"
-            kubectl get service inventory-system-service -n inventory-system
+            kubectl get service prd-inventory-system-service -n inventory-system
           else
             echo "Aplicación PRD desplegada en: http://$EXTERNAL_IP"
           fi
