@@ -11,6 +11,12 @@ builder.Services.AddControllersWithViews();
 builder.Services.AddDbContext<AppDbContext>(options =>
 {
     var connectionString = builder.Configuration.GetConnectionString("SqlConnection");
+
+    if (string.IsNullOrWhiteSpace(connectionString))
+    {
+        throw new InvalidOperationException("Connection string 'SqlConnection' is null or empty. Check environment variable 'ConnectionStrings__SqlConnection'");
+    }
+
     options.UseSqlServer(connectionString);
     options.EnableSensitiveDataLogging(builder.Environment.IsDevelopment());
 });
