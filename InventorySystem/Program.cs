@@ -27,7 +27,6 @@ builder.Services.AddScoped<MovimientoService>();
 
 var app = builder.Build();
 
-// OMITIR verificación de BD en startup para permitir que la app inicie
 // Las migraciones se aplicarán manualmente o en un job separado
 var logger = app.Services.GetRequiredService<ILogger<Program>>();
 logger.LogInformation("Aplicacion iniciada - omitiendo verificacion de BD en startup");
